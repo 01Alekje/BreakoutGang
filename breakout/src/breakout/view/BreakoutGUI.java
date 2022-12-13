@@ -16,6 +16,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -171,13 +173,18 @@ public class BreakoutGUI extends Application implements IEventHandler {
     }
 
     // -------- Event handling (events sent from model to GUI) -----------
+    //EventBus.INSTANCE.register( this )    // Register instance to get events
 
     @Override
     public void onModelEvent(ModelEvent evt) {
         if (evt.type == ModelEvent.Type.BALL_HIT_PADDLE) {
-           // TODO Play a sound
-        } else if (evt.type == ModelEvent.Type.BALL_HIT_BRICK) {
+            assets.ballHitPaddle.play();
             // TODO Play a sound
+        } else if (evt.type == ModelEvent.Type.BALL_HIT_BRICK) {
+            assets.ballHitBrick.play();
+            // TODO Play a sound
+        } else if (evt.type == ModelEvent.Type.GAME_OVER) {
+            assets.gameOver.play();
         }
     }
 

@@ -1,6 +1,9 @@
 package breakout.model;
 
 
+import breakout.event.EventBus;
+import breakout.event.ModelEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,16 +47,16 @@ public class Breakout {
     }
     // --------  Game Logic -------------
 
-    private long timeForLastHit;         // To avoid multiple collisions
+    private long timeForLastHit;         // To avoid multiple collisions // TODO fix multiple collisions and make ball hitbox wider
 
     public void update(long now) {
         // TODO  Main game loop, start functional decomposition from here
         checkCollision();
         this.ball.move();
         this.paddle.move();
-        ballCollision(this.ball, paddle);
+        ballCollision(this.ball, paddle, now);
         for (Brick brick : allBricks) {
-            ballCollision(ball, brick);
+            ballCollision(ball, brick, now);
         }
         paddleBounds();
         ballBounds();
@@ -79,6 +82,7 @@ public class Breakout {
             this.ball.setDy(-(Math.abs(this.ball.getDy()) + 1));
             this.ball.setDx(8 * Math.random() - 4);
             nBalls -= 1;
+            EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.GAME_OVER));
         }
     }
 
@@ -86,11 +90,11 @@ public class Breakout {
         this.paddle.setDx(arg);
     }
 
-    public void paddleBounds () { // kan refaktoreras
+    public void paddleBounds () {
         double DX = this.paddle.getDx();
         double GX = this.paddle.getX();
         double GW = this.paddle.getWidth();
-        double WR = this.allWalls.get(2).getX(); //this.wallRight.getX();
+        double WR = this.allWalls.get(2).getX();
         double WL = this.allWalls.get(0).getX();
         Paddle P  = this.paddle;
         if (DX > 0) {
@@ -104,20 +108,33 @@ public class Breakout {
         }
     }
 
-    public void ballCollision(Ball ball, Positionable p) {
-        double ballCenter = ball.getX() + (ball.getWidth() / 2.0);
+    public void ballCollision(Ball ball, Positionable p, long now) {
+        double ballLeft = ball.getX();
+        double ballRight = ball.getX() + ball.getWidth();
+        double ballTop = ball.getY();
+        double ballBottom = ball.getY() + ball.getHeight();
 
-        if (ballCenter > p.getX() && ballCenter < (p.getX() + p.getWidth())) {
-            if (ball.getY() > (p.getY() - ball.getHeight()) && ball.getY() < p.getY()) {
-                if (p instanceof Brick) {
+        double pLeft = p.getX();
+        double pRight = p.getX() + p.getWidth();
+        double pTop = p.getY();
+        double pBottom = p.getY() + p.getHeight();
+
+        if (ballRight > pLeft && ballLeft < pRight && ballTop < pBottom && ballBottom > pTop) {
+            if (p instanceof Brick) {
+                if (now - timeForLastHit > SEC / 4) {
+                    timeForLastHit = now;
                     Brick b = (Brick) p;
-                    playerPoints += b.getPoints(); // lurig lurig, vet inte att den är Brick
+                    playerPoints += b.getPoints();
                     p.setX(p.getX() + 400);
+                    EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.BALL_HIT_BRICK));
                 }
-                ball.setDy(ball.getDy() * -1);
+            } else {
+                EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.BALL_HIT_PADDLE));
             }
+            ball.setDy(ball.getDy() * -1);
         }
     }
+
 
     public void BallsToTheWalls(Wall wall, Ball ball) {
         if (wall.getDir() == Wall.Dir.VERTICAL){
@@ -139,25 +156,11 @@ public class Breakout {
         List<IPositionable> bert = new ArrayList<>();
         bert.add(this.ball);
         bert.add(this.paddle);
-        for (Wall wall : this.allWalls) {
-            bert.add(wall);
-        }
-        for (Brick brick : this.allBricks) {
-            bert.add(brick);
-        }
-        //bert.add(this.allBricks.get(0));
-
+        bert.addAll(this.allWalls);
+        bert.addAll(this.allBricks);
         return bert;
-        //return this.positionables;  // TODO return all objects to be rendered by GUI
+        // TODO return all objects to be rendered by GUI
     }
-
-/*    public List<Wall> getWalls(){
-        List<Wall> allWalls = new ArrayList<>();
-        allWalls.add(this.wallLeft);
-        allWalls.add(this.wallRoof);
-        allWalls.add(this.wallRight);
-        return allWalls;
-    }*/
 
     public int getPlayerPoints() {
         return playerPoints;
