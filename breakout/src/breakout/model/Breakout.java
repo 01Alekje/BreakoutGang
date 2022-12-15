@@ -21,17 +21,18 @@ public class Breakout {
     public static final double GAME_WIDTH = 400;
     public static final double GAME_HEIGHT = 400;
     public static final double BALL_SPEED_FACTOR = 1.05; // Increase ball speed
-    public static final long SEC = 1_000_000_000;  // Nano seconds used by JavaFX
-
+    public static final long SEC = 1_000_000_000;  // Nanoseconds used by JavaFX
     private int nBalls = 5;
     int playerPoints;
     double randomDouble = 8 * Math.random() - 4;
-    private Ball ball;
-    private List<IPositionable> positionables;
-    private List<Brick> allBricks;
-    private List<Wall> allWalls;
-    private Paddle paddle;
-    //private Brick bricks;
+    private final Ball ball;
+    private final List<IPositionable> positionables;
+    private final List<Brick> allBricks;
+    private final List<Wall> allWalls;
+    private final Paddle paddle;
+    public Paddle getPaddle(){
+        return this.paddle;
+    }
 
 
     // TODO Constructor that accepts all objects needed for the model
@@ -43,11 +44,10 @@ public class Breakout {
         this.positionables.add(paddle);
         this.allBricks = allBricks;
         this.allWalls = allWalls;
-        //this.positionables.add();
     }
     // --------  Game Logic -------------
 
-    private long timeForLastHit;         // To avoid multiple collisions // TODO fix multiple collisions and make ball hitbox wider
+    private long timeForLastHit;  // To avoid multiple collisions
 
     public void update(long now) {
         // TODO  Main game loop, start functional decomposition from here
@@ -86,55 +86,58 @@ public class Breakout {
         }
     }
 
-    public void movePaddle (double arg) {
-        this.paddle.setDx(arg);
-    }
+    public void paddleBounds() {
+        double dx = this.paddle.getDx();
+        double x = this.paddle.getX();
+        double width = this.paddle.getWidth();
+        double rightWall = this.allWalls.get(2).getX();
+        double leftWall = this.allWalls.get(0).getX();
+        Paddle p = this.paddle;
 
-    public void paddleBounds () {
-        double DX = this.paddle.getDx();
-        double GX = this.paddle.getX();
-        double GW = this.paddle.getWidth();
-        double WR = this.allWalls.get(2).getX();
-        double WL = this.allWalls.get(0).getX();
-        Paddle P  = this.paddle;
-        if (DX > 0) {
-            if (GX + GW + DX >=  WR) {
-                P.setX(WR - GW - DX);
+        if (dx > 0) {
+            if (x + width + dx >= rightWall) {
+                p.setX(rightWall - width);
             }
-        } else if (DX < 0) {
-            if (GX + DX <=  WL) {
-                P.setX(WL - DX);
+        } else if (dx < 0) {
+            if (x + dx <= leftWall) {
+                p.setX(leftWall);
             }
         }
     }
 
     public void ballCollision(Ball ball, Positionable p, long now) {
-        double ballLeft = ball.getX();
-        double ballRight = ball.getX() + ball.getWidth();
-        double ballTop = ball.getY();
-        double ballBottom = ball.getY() + ball.getHeight();
+        double ballX = ball.getX();
+        double ballY = ball.getY();
+        double ballWidth = ball.getWidth();
+        double ballHeight = ball.getHeight();
+        double ballRight = ballX + ballWidth;
+        double ballBottom = ballY + ballHeight;
 
-        double pLeft = p.getX();
-        double pRight = p.getX() + p.getWidth();
-        double pTop = p.getY();
-        double pBottom = p.getY() + p.getHeight();
+        double pX = p.getX();
+        double pY = p.getY();
+        double pWidth = p.getWidth();
+        double pHeight = p.getHeight();
+        double pRight = pX + pWidth;
+        double pBottom = pY + pHeight;
 
-        if (ballRight > pLeft && ballLeft < pRight && ballTop < pBottom && ballBottom > pTop) {
-            if (p instanceof Brick) {
-                if (now - timeForLastHit > SEC / 4) {
-                    timeForLastHit = now;
+        if (ballRight > pX && ballX < pRight && ballY < pBottom && ballBottom > pY) {
+            if (now - timeForLastHit > SEC / 4) {
+                if (p instanceof Brick) {
                     Brick b = (Brick) p;
                     playerPoints += b.getPoints();
-                    p.setX(p.getX() + 400);
+                    p.setX(pX + 400);
                     EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.BALL_HIT_BRICK));
+
+                } else {
+                    if (now - timeForLastHit > SEC / 4){
+                        EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.BALL_HIT_PADDLE));
+                    }
                 }
-            } else {
-                EventBus.INSTANCE.publish(new ModelEvent(ModelEvent.Type.BALL_HIT_PADDLE));
+                timeForLastHit = now;
+                ball.setDy(ball.getDy() * -1);
             }
-            ball.setDy(ball.getDy() * -1);
         }
     }
-
 
     public void BallsToTheWalls(Wall wall, Ball ball) {
         if (wall.getDir() == Wall.Dir.VERTICAL){

@@ -5,8 +5,8 @@ public abstract class Positionable implements IPositionable {
     private double y;
     private double dX;
     private double dY;
-    private double width;
-    private double height;
+    private final double width;
+    private final double height;
 
     public Positionable(double x, double y, double dX, double dY, double width, double height) {
         this.x = x;
@@ -15,10 +15,6 @@ public abstract class Positionable implements IPositionable {
         this.dY = dY;
         this.width = width;
         this.height = height;
-    }
-
-    public Positionable() {
-
     }
 
     public void move(){
@@ -31,13 +27,11 @@ public abstract class Positionable implements IPositionable {
         return this.x;
     }
 
-    public double setX(double i){
+    public void setX(double i){
         this.x = i;
-        return this.x;
     }
-    public double setY(double i){
+    public void setY(double i){
         this.y = i;
-        return this.y;
     }
 
     @Override

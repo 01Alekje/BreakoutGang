@@ -16,8 +16,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -59,11 +57,11 @@ public class BreakoutGUI extends Application implements IEventHandler {
         switch (kc) {
             case LEFT:
                 leftKeyPressed = true;
-                breakout.movePaddle(-5);
+                breakout.getPaddle().setDx(-5);
                 break;
             case RIGHT:
                 rightKeyPressed = true;
-                breakout.movePaddle(5);
+                breakout.getPaddle().setDx(5);
                 // TODO
                 break;
             default:  // Nothing
@@ -84,18 +82,9 @@ public class BreakoutGUI extends Application implements IEventHandler {
         }
 
         if (!leftKeyPressed && !rightKeyPressed) {
-            breakout.movePaddle(0);
+            breakout.getPaddle().setDx(0);
+
         }
-        /*
-        switch (kc) {
-            case LEFT:        // No break, fall through
-                breakout.movePaddle(0);
-            case RIGHT:
-                breakout.movePaddle(0);
-                break;
-            default: // Nothing
-        }
-        */
     }
 
     // ---------- Menu actions ---------------------
@@ -108,7 +97,7 @@ public class BreakoutGUI extends Application implements IEventHandler {
         // --- Build the model -----
         // TODO Build the model (also: see methods below)
 
-        List<Brick> bricks = getBricks(6, 16); // bruh moment på raderna!
+        List<Brick> bricks = getBricks(6, 16);
         this.breakout = new Breakout(bricks, this.getWalls());
 
         // Bind bricks to images
@@ -130,9 +119,9 @@ public class BreakoutGUI extends Application implements IEventHandler {
 
     // Create all walls
     private List<Wall> getWalls() {
-        Wall left = new Wall(0, 0, false); //breakout.getWalls().get(0);             //TODO
-        Wall top = new Wall(0, 0, true);//breakout.getWalls().get(1);               //TODO
-        Wall right = new Wall(0, 400, false); //breakout.getWalls().get(2);          //TODO
+        Wall left = new Wall(0, 0, false);
+        Wall top = new Wall(0, 0, true);
+        Wall right = new Wall(0, 400, false);
         return Arrays.asList(left, top, right);
     }
 
@@ -143,7 +132,7 @@ public class BreakoutGUI extends Application implements IEventHandler {
         int bh = (int) BRICK_HEIGHT;
         int offset = 5;
         int points = 300;
-        for (int y = 10 * offset; y < nRows * (bh + offset); y += bh + offset) { // y = 50, y < 45, y += 15
+        for (int y = 10 * offset; y < nRows * (bh + offset); y += bh + offset) {
             for (int x = offset - 2; x < nCols * (bw + offset); x += bw + offset) {
                 Brick b = new Brick(x, y, points);     // TODO
                 bricks.add(b);
@@ -283,7 +272,7 @@ public class BreakoutGUI extends Application implements IEventHandler {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Breakout");
 
-        // Set assets, splash (order matters) and inital menu state
+        // Set assets, splash (order matters) and initial menu state
         assets = new Assets();
         menu.fixMenusKillGame();
         renderSplash();

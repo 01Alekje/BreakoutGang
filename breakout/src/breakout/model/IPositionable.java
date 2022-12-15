@@ -8,7 +8,7 @@ package breakout.model;
  */
 public interface IPositionable {
 
-    double getX();      // Min x and y is upper left corner (y-axis pointing donw)
+    double getX();      // Min x and y is upper left corner (y-axis pointing down)
 
     double getY();
 
